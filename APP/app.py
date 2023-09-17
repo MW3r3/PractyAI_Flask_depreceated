@@ -29,7 +29,7 @@ def persona_select(persona_id):
         "5": "/Users/melihbulut/Documents/PractyAI WebApp/APP/Personas/Singer.txt",
     }
 
-    try:
+    try:    
         path = persona_paths[persona_id]
         with open(path, "r", encoding="utf-8") as persona_file:
             persona = persona_file.read()
@@ -95,24 +95,15 @@ def process_user_message(user_id, user_message, conversation_id, persona_id):
 
 
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
         user_id = request.form['user_id']
         user_message = request.form['user_message']
         persona_id = request.form['persona_id']
 
-        # Check if conversation_id is already in the session
-        if 'conversation_id' in session:
-            conversation_id = session['conversation_id']
-        else:
-            conversation_id = create_conversation_id()
-            session['conversation_id'] = conversation_id  # Store conversation_id in the session
-
-        # Check if user_id is already in the session
-        if 'user_id' in session:
-            user_id = session['user_id']
-        else:
-            session['user_id'] = user_id  # Store user_id in the session
+        # Generate or retrieve the conversation_id
+        conversation_id = create_conversation_id()
 
         # Initialize the system message based on persona
         initial_system_message = persona_select(persona_id)
@@ -123,13 +114,13 @@ def index():
         # Log the initial system message
         log_conversation(user_id, initial_system_message, user_message, bot_answer, conversation_id)
 
-        # Store token in the session (assuming you want to keep it)
+        # Generate the token
         token_value = token(user_id, conversation_id)
-        session['token'] = token_value
 
         return render_template('index.html', user_id=user_id, user_message=user_message, bot_answer=bot_answer, token=token_value)
 
     return render_template('index.html', user_id=None, user_message=None)
+
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=8443, ssl_context="adhoc")
