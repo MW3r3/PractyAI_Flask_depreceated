@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practy Chatbot</title>
+</head>
+<body>
+    <h1>Welcome to Practy Chatbot</h1>
+    <form method="POST" action="/">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id" required><br><br>
+
+        <label for="persona_id">Select Persona:</label>
+        <select id="persona_id" name="persona_id" required>
+            <option value="0">Practy</option>
+            <option value="1">Businessman</option>
+            <option value="2">Teacher</option>
+            <option value="3">Student</option>
+            <option value="4">Athlete</option>
+            <option value="5">Singer</option>
+        </select><br><br>
+
+        <label for="user_message">Your Message:</label>
+        <input type="text" id="user_message" name="user_message" required><br><br>
+
+        <input type="submit" value="Send">
+    </form>
+
+    <h2>Chatbot Response:</h2>
+    <div id="chatbot-response">
+        {% if bot_answer %}
+            <p><strong>User ID:</strong> {{ user_id }}</p>
+            <p><strong>User Message:</strong> {{ user_message }}</p>
+            <p><strong>Bot Answer:</strong> {{ bot_answer }}</p>
+            <p><strong>System Message:</strong> {{ initial_system_message }}</p>
+            <p><strong>Token:</strong> {{ token }}</p>
+        {% endif %}
+    </div>
+
+    <p><strong>Note:</strong> Make sure to enter a User ID, select a Persona, and type your message to interact with the chatbot.</p>
+</body>
+</html>
