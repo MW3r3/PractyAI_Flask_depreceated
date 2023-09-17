@@ -3,7 +3,7 @@ import openai
 import mysql.connector
 import hashlib
 import random
-from config import MYSQL_CONFIG, OPENAI_API_KEY, CHATGPT_MODEL, SECRET_KEY
+from config import MYSQL_CONFIG, OPENAI_API_KEY, CHATGPT_MODEL, SECRET_KEY, MODEL_TEMP, MAX_TOKENS, STOP_PROMPT
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -81,7 +81,11 @@ def process_user_message(user_id, user_message, conversation_id, persona_id):
     messages.append({"role": "user", "content": user_message})
 
     chat = openai.ChatCompletion.create(
-        model=CHATGPT_MODEL, messages=messages
+        model=CHATGPT_MODEL,
+        messages=messages,
+        temperature=MODEL_TEMP,
+        max_tokens=MAX_TOKENS,
+        stop=STOP_PROMPT
     )
     bot_answer = chat.choices[0].message.content
     messages[-1]["role"] = "user"
