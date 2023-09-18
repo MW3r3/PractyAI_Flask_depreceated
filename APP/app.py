@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session
 import openai
 import mysql.connector
 import hashlib
+import json
 import random
 from config import MYSQL_CONFIG, OPENAI_API_KEY, CHATGPT_MODEL, SECRET_KEY, MODEL_TEMP, MAX_TOKENS, STOP_PROMPT
 
@@ -17,6 +18,31 @@ mysql_cursor = mysql_connection.cursor()
 messages = []
 initial_system_message = "Hello! I'm Practy, your personal assistant. I can help you with your daily tasks. "
 conversation_id = 0
+
+def create_embeddings(Message):
+    query = "SELECT * FROM embedding_vectors WHERE Message = %s"
+    values = (Message)
+    mysql_cursor.execute(query, values)
+    result = mysql_cursor.fetchone()
+    if result:
+        print(f"embedding already exists. proceed to next step.")  # Debug statement
+        return result[1]
+    else:
+        embedding = openai.Embedding.create(
+            engine="text-embedding-ada-002",
+            input=Message
+            )
+
+        embedding_vectors = json.dumps(embedding)
+        print (embedding_vectors)
+
+    #query = "INSERT INTO embedding_vectors (Message, Embedding) VALUES (%s, %s)"
+    #values = (Message, embedding_vectors)
+    #mysql_cursor.execute(query, values)
+    #mysql_connection.commit()
+    #print(f"embedding created. proceed to next step.")  # Debug statement
+
+
 
 # Function to select a persona based on persona_id
 def persona_select(persona_id):
@@ -63,11 +89,15 @@ def create_conversation_id():
 def token(userid, conversation_id):
     random_num = random.randint(0, 100000)
     token = hashlib.md5((userid + conversation_id + str(random_num)).encode()).hexdigest()
-    return token
+    #insert token to the database
+    query = "INSERT INTO tokens (userid, conversation_id, token) VALUES (%s, %s, %s)"
+    values = (userid, conversation_id, token)
+    mysql_cursor.execute(query, values)
+    mysql_connection.commit()
 
 # Function to log the conversation in the database
 def log_conversation(user_id, system_message, user_message, bot_answer, conversation_id):
-    query = "INSERT INTO conversationlog (userid, systemmessage, usermessage, botsanswer,conversation_id) " \
+    query = "INSERT INTO conversationlog (userid, systemmessage, usermessage, botsanswer, conversation_id) " \
             "VALUES (%s, %s, %s, %s, %s)"
     values = (user_id, system_message, user_message, bot_answer, conversation_id)
     mysql_cursor.execute(query, values)
@@ -91,10 +121,12 @@ def process_user_message(user_id, user_message, conversation_id, persona_id):
     messages[-1]["role"] = "user"
     messages.append({"role": "assistant", "content": bot_answer})
 
+    create_embeddings(user_message)
+    create_embeddings(bot_answer)
+
     return bot_answer
 
 
-@app.route('/', methods=['GET', 'POST'])
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
@@ -114,10 +146,7 @@ def index():
         # Log the initial system message
         log_conversation(user_id, initial_system_message, user_message, bot_answer, conversation_id)
 
-        # Generate the token
-        token_value = token(user_id, conversation_id)
-
-        return render_template('index.html', user_id=user_id, user_message=user_message, bot_answer=bot_answer, token=token_value)
+        return render_template('index.html', user_id=user_id, user_message=user_message, bot_answer=bot_answer)
 
     return render_template('index.html', user_id=None, user_message=None)
 

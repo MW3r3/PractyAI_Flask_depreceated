@@ -6,3 +6,5 @@ itsdangerous==0.24
 openai
 mysql.connector
 
+
+
