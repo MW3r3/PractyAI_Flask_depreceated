@@ -5,6 +5,9 @@ Werkzeug==0.9.4
 itsdangerous==0.24
 openai
 mysql.connector
+pymilvus
+numpy
+mysql.connector
 
 
 
